@@ -393,9 +393,7 @@
   <main class="container">
     <!-- 왼쪽: 설명 영역 -->
     <section>
-      <div class="badge">
-        🎯 <span>시니어 디지털 역량 · 기초 UI/UX 게임</span>
-      </div>
+
       <h1 class="title">디지털 ‘숨은 그림 찾기’ 게임</h1>
       <p class="subtitle">
         스마트폰 화면에서 자주 헷갈리는 버튼과 메뉴를 찾으면서<br />
@@ -408,18 +406,6 @@
         숨은 그림 찾기처럼 간단하고 재미있게 풀어낸 형태입니다.
       </p>
 
-      <h2 class="section-title">예시 미션</h2>
-      <ul class="list">
-        <li>공유 버튼은 어디에 있을까?</li>
-        <li>설정 화면에서 ‘데이터’ 메뉴 찾기</li>
-        <li>사진 갤러리에서 앨범 이동하기</li>
-      </ul>
-
-      <h2 class="section-title">포인트</h2>
-      <ul class="list points">
-        <li>단순하지만 디지털 기초에 매우 효과적</li>
-        <li>반복해도 지루하지 않은 구조로 설계 가능</li>
-      </ul>
     </section>
 
     <!-- 오른쪽: 실제 미니 게임 데모 -->
@@ -573,42 +559,52 @@
       });
     }
 
-    function loadMission(index) {
-      const mission = missions[index];
-      currentMissionIndex = index;
-      missionCleared = false;
+function loadMission(index) {
+  const mission = missions[index];
+  currentMissionIndex = index;
+  missionCleared = false;
 
-      questionText.textContent = mission.question;
-      statusText.textContent = "화면 속에서 정답이라고 생각되는 부분을 눌러보세요.";
-      statusText.className = "status-text";
-      hintText.textContent = "힌트가 필요하면 ‘힌트 보기’를 눌러보세요.";
-      appTitleLabel.textContent = mission.title;
+  questionText.textContent = mission.question;
+  statusText.textContent = "화면 속에서 정답이라고 생각되는 부분을 눌러보세요.";
+  statusText.className = "status-text";
+  hintText.textContent = "힌트가 필요하면 ‘힌트 보기’를 눌러보세요.";
+  appTitleLabel.textContent = mission.title;
 
-      nextBtn.disabled = true;
-      updateDots();
+  nextBtn.disabled = true;
+
+  // 마지막 문제에서는 "다음 미션" 버튼을 숨깁니다.
+  if (currentMissionIndex === missions.length - 1) {
+    nextBtn.style.display = "none";
+  } else {
+    nextBtn.style.display = "inline-flex";
+  }
+
+  updateDots();
+}
+
+
+function handleClick(event) {
+  const mission = missions[currentMissionIndex];
+  const targetId = mission.targetId;
+  const clickedId = event.target.id;
+
+  // 정답 클릭
+  if (clickedId === targetId || event.target.closest('#menu-data')) {
+    missionCleared = true;
+    statusText.textContent = "정답입니다! 잘 찾으셨어요 👏";
+    statusText.className = "status-text success";
+    hintText.textContent = "이제 이 버튼을 실제 스마트폰에서도 한 번 찾아보면 더 기억에 잘 남아요.";
+    nextBtn.disabled = currentMissionIndex >= missions.length - 1;
+  } else {
+    // 오답 클릭 (휴대폰 영역 안일 때만 반응)
+    const phone = document.querySelector(".phone");
+    if (phone.contains(event.target)) {
+      statusText.textContent = "조금 다른 곳이에요. 다시 한 번 천천히 둘러보세요.";
+      statusText.className = "status-text error";
     }
+  }
+}
 
-    function handleClick(event) {
-      const mission = missions[currentMissionIndex];
-      const targetId = mission.targetId;
-      const clickedId = event.target.id;
-
-      // 정답 클릭
-      if (clickedId === targetId) {
-        missionCleared = true;
-        statusText.textContent = "정답입니다! 잘 찾으셨어요 👏";
-        statusText.className = "status-text success";
-        hintText.textContent = "이제 이 버튼을 실제 스마트폰에서도 한 번 찾아보면 더 기억에 잘 남아요.";
-        nextBtn.disabled = currentMissionIndex >= missions.length - 1;
-      } else {
-        // 오답 클릭 (휴대폰 영역 안일 때만 반응)
-        const phone = document.querySelector(".phone");
-        if (phone.contains(event.target)) {
-          statusText.textContent = "조금 다른 곳이에요. 다시 한 번 천천히 둘러보세요.";
-          statusText.className = "status-text error";
-        }
-      }
-    }
 
     // 힌트 버튼
     hintBtn.addEventListener("click", () => {
