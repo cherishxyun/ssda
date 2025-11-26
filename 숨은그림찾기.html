@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>디지털 숨은 그림 찾기 게임</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f2f4f8;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.15);
+      padding: 24px 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .badge span {
+      font-size: 14px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 18px 0 8px;
+    }
+
+    .list {
+      margin-left: 18px;
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.6;
+    }
+
+    .list li {
+      margin-bottom: 4px;
+    }
+
+    .points {
+      font-size: 14px;
+      color: #111827;
+      line-height: 1.6;
+    }
+
+    .points li::marker {
+      content: "✔ ";
+      color: #22c55e;
+      font-weight: 700;
+    }
+
+    /* 오른쪽: 게임 영역 */
+
+    .game-card {
+      border-radius: 14px;
+      background: #f9fafb;
+      padding: 18px;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .game-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .level-indicator {
+      display: flex;
+      gap: 4px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+    }
+
+    .dot.active {
+      background: #6366f1;
+    }
+
+    .question-box {
+      font-size: 14px;
+      background: #eef2ff;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #111827;
+      line-height: 1.5;
+    }
+
+    .question-label {
+      font-size: 12px;
+      color: #4f46e5;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .question-text {
+      font-weight: 500;
+    }
+
+    .game-layout {
+      display: flex;
+      justify-content: center;
+      margin-top: 4px;
+    }
+
+    .phone {
+      width: 220px;
+      height: 420px;
+      border-radius: 26px;
+      background: linear-gradient(145deg, #111827, #020617);
+      padding: 12px;
+      position: relative;
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.45);
+    }
+
+    .phone-notch {
+      width: 90px;
+      height: 14px;
+      border-radius: 999px;
+      background: #020617;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%);
+      padding: 40px 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #9ca3af;
+      padding: 0 4px;
+    }
+
+    .fake-app {
+      flex: 1;
+      margin-top: 8px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 10px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+      color: #e5e7eb;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .app-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .back-btn {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+    }
+
+    .share-btn {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(129, 140, 248, 0.9);
+      background: rgba(79, 70, 229, 0.1);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .share-btn:hover {
+      background: rgba(129, 140, 248, 0.3);
+    }
+
+    .menu-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .menu-item {
+      background: rgba(31, 41, 55, 0.9);
+      border-radius: 8px;
+      padding: 8px 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      position: relative;
+      border: 1px solid transparent;
+      transition: transform 0.06s, border 0.1s, background 0.1s;
+    }
+
+    .menu-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(129, 140, 248, 0.7);
+      background: rgba(31, 41, 55, 1);
+    }
+
+    .menu-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      background: rgba(148, 163, 184, 0.35);
+    }
+
+    .menu-text-main {
+      font-size: 11px;
+    }
+
+    .menu-text-sub {
+      font-size: 10px;
+      color: #9ca3af;
+    }
+
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: #9ca3af;
+      border-top: 1px solid rgba(55, 65, 81, 0.9);
+      padding-top: 6px;
+    }
+
+    .album-btn {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+    }
+
+    .album-btn:hover {
+      background: rgba(148, 163, 184, 0.2);
+    }
+
+    .game-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .status-text {
+      min-height: 18px;
+      color: #4b5563;
+    }
+
+    .status-text.success {
+      color: #16a34a;
+      font-weight: 600;
+    }
+
+    .status-text.error {
+      color: #dc2626;
+      font-weight: 500;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      background: #4f46e5;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s, transform 0.05s;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: default;
+      transform: none !important;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #4338ca;
+      transform: translateY(-1px);
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      background: #d1d5db;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <!-- 왼쪽: 설명 영역 -->
+    <section>
+      <div class="badge">
+        🎯 <span>시니어 디지털 역량 · 기초 UI/UX 게임</span>
+      </div>
+      <h1 class="title">디지털 ‘숨은 그림 찾기’ 게임</h1>
+      <p class="subtitle">
+        스마트폰 화면에서 자주 헷갈리는 버튼과 메뉴를 찾으면서<br />
+        자연스럽게 디지털 기초 사용법을 익히는 UI/UX 체험 게임입니다.
+      </p>
+
+      <h2 class="section-title">게임 컨셉</h2>
+      <p class="subtitle" style="margin-bottom: 6px;">
+        시니어가 가장 어려워하는 <b>“어디를 눌러야 하지?”</b> 순간을<br />
+        숨은 그림 찾기처럼 간단하고 재미있게 풀어낸 형태입니다.
+      </p>
+
+      <h2 class="section-title">예시 미션</h2>
+      <ul class="list">
+        <li>공유 버튼은 어디에 있을까?</li>
+        <li>설정 화면에서 ‘데이터’ 메뉴 찾기</li>
+        <li>사진 갤러리에서 앨범 이동하기</li>
+      </ul>
+
+      <h2 class="section-title">포인트</h2>
+      <ul class="list points">
+        <li>단순하지만 디지털 기초에 매우 효과적</li>
+        <li>반복해도 지루하지 않은 구조로 설계 가능</li>
+      </ul>
+    </section>
+
+    <!-- 오른쪽: 실제 미니 게임 데모 -->
+    <section class="game-card">
+      <header class="game-header">
+        <div class="game-title">🔍 숨은 버튼 찾기 – 미니 체험판</div>
+        <div class="level-indicator">
+          <div class="dot" id="dot-0"></div>
+          <div class="dot" id="dot-1"></div>
+          <div class="dot" id="dot-2"></div>
+        </div>
+      </header>
+
+      <div class="question-box">
+        <div class="question-label">미션</div>
+        <div class="question-text" id="question-text">
+          공유 버튼은 어디에 있을까요? 화면에서 찾아 눌러보세요.
+        </div>
+      </div>
+
+      <div class="game-layout">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="status-bar">
+              <span>오전 10:24</span>
+              <span>LTE · 85%</span>
+            </div>
+
+            <div class="fake-app">
+              <div class="app-header">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <div class="back-btn" data-target="back">
+                    ‹
+                  </div>
+                  <div class="app-title">
+                    <span id="app-title-label">갤러리</span>
+                  </div>
+                </div>
+                <button class="share-btn" id="btn-share">
+                  ↗ 공유
+                </button>
+              </div>
+
+              <div class="menu-row">
+                <div class="menu-item" id="menu-data">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">데이터</div>
+                  <div class="menu-text-sub">모바일/와이파이</div>
+                </div>
+                <div class="menu-item" id="menu-noti">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">알림</div>
+                  <div class="menu-text-sub">앱 알림</div>
+                </div>
+                <div class="menu-item" id="menu-display">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">화면</div>
+                  <div class="menu-text-sub">밝기/글자</div>
+                </div>
+                <div class="menu-item" id="menu-album1">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">최근 사진</div>
+                  <div class="menu-text-sub">오늘</div>
+                </div>
+                <div class="menu-item" id="menu-album2">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">가족 앨범</div>
+                  <div class="menu-text-sub">손주 사진</div>
+                </div>
+                <div class="menu-item" id="menu-album3">
+                  <div class="menu-icon"></div>
+                  <div class="menu-text-main">여행</div>
+                  <div class="menu-text-sub">부산/제주</div>
+                </div>
+              </div>
+
+              <div class="bottom-bar">
+                <span>홈</span>
+                <button class="album-btn" id="btn-album-move">앨범 이동</button>
+                <span>더보기</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="game-footer">
+        <div>
+          <div class="status-text" id="status-text">
+            화면 속에서 정답이라고 생각되는 부분을 눌러보세요.
+          </div>
+          <div class="hint" id="hint-text">
+            힌트가 필요하면 &lsquo;힌트 보기&rsquo;를 눌러보세요.
+          </div>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button class="btn secondary" id="btn-hint">힌트 보기</button>
+          <button class="btn" id="btn-next" disabled>다음 미션 ▶</button>
+        </div>
+      </footer>
+    </section>
+  </main>
+
+  <script>
+    // 3단계 미션 정의
+    const missions = [
+      {
+        id: 0,
+        question: "공유 버튼은 어디에 있을까요? 화면에서 찾아 눌러보세요.",
+        targetId: "btn-share",
+        hint: "사진을 다른 사람에게 보내고 싶을 때 누르는 버튼입니다. 오른쪽 위를 잘 살펴보세요.",
+        title: "갤러리"
+      },
+      {
+        id: 1,
+        question: "설정 화면에서 ‘데이터’ 메뉴를 눌러보세요.",
+        targetId: "menu-data",
+        hint: "모바일/와이파이와 관련된 메뉴를 찾아보세요.",
+        title: "설정"
+      },
+      {
+        id: 2,
+        question: "사진 갤러리에서 ‘앨범 이동’ 버튼을 눌러보세요.",
+        targetId: "btn-album-move",
+        hint: "화면 맨 아래쪽, 앨범을 옮길 때 누르는 버튼을 찾아보세요.",
+        title: "갤러리 · 앨범"
+      }
+    ];
+
+    let currentMissionIndex = 0;
+    let missionCleared = false;
+
+    const questionText = document.getElementById("question-text");
+    const statusText = document.getElementById("status-text");
+    const hintText = document.getElementById("hint-text");
+    const hintBtn = document.getElementById("btn-hint");
+    const nextBtn = document.getElementById("btn-next");
+    const appTitleLabel = document.getElementById("app-title-label");
+
+    // 레벨 표시 점 업데이트
+    function updateDots() {
+      missions.forEach((m, idx) => {
+        const dot = document.getElementById(`dot-${idx}`);
+        if (!dot) return;
+        if (idx === currentMissionIndex) {
+          dot.classList.add("active");
+        } else {
+          dot.classList.remove("active");
+        }
+      });
+    }
+
+    function loadMission(index) {
+      const mission = missions[index];
+      currentMissionIndex = index;
+      missionCleared = false;
+
+      questionText.textContent = mission.question;
+      statusText.textContent = "화면 속에서 정답이라고 생각되는 부분을 눌러보세요.";
+      statusText.className = "status-text";
+      hintText.textContent = "힌트가 필요하면 ‘힌트 보기’를 눌러보세요.";
+      appTitleLabel.textContent = mission.title;
+
+      nextBtn.disabled = true;
+      updateDots();
+    }
+
+    function handleClick(event) {
+      const mission = missions[currentMissionIndex];
+      const targetId = mission.targetId;
+      const clickedId = event.target.id;
+
+      // 정답 클릭
+      if (clickedId === targetId) {
+        missionCleared = true;
+        statusText.textContent = "정답입니다! 잘 찾으셨어요 👏";
+        statusText.className = "status-text success";
+        hintText.textContent = "이제 이 버튼을 실제 스마트폰에서도 한 번 찾아보면 더 기억에 잘 남아요.";
+        nextBtn.disabled = currentMissionIndex >= missions.length - 1;
+      } else {
+        // 오답 클릭 (휴대폰 영역 안일 때만 반응)
+        const phone = document.querySelector(".phone");
+        if (phone.contains(event.target)) {
+          statusText.textContent = "조금 다른 곳이에요. 다시 한 번 천천히 둘러보세요.";
+          statusText.className = "status-text error";
+        }
+      }
+    }
+
+    // 힌트 버튼
+    hintBtn.addEventListener("click", () => {
+      const mission = missions[currentMissionIndex];
+      hintText.textContent = mission.hint;
+    });
+
+    // 다음 미션 버튼
+    nextBtn.addEventListener("click", () => {
+      if (currentMissionIndex < missions.length - 1) {
+        loadMission(currentMissionIndex + 1);
+      }
+    });
+
+    // 휴대폰 전체 영역에 클릭 이벤트 위임
+    document.querySelector(".phone").addEventListener("click", handleClick);
+
+    // 초기 로드
+    loadMission(0);
+  </script>
+</body>
+</html>
